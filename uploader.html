@@ -55,6 +55,18 @@
             position: relative;
             margin-bottom: 15px;
             overflow: hidden;
+            cursor: pointer;
+            transition: border-color 0.3s, background-color 0.3s;
+        }
+        
+        .preview-container:hover {
+            border-color: #4a90e2;
+            background-color: rgba(74, 144, 226, 0.05);
+        }
+        
+        .preview-container.drag-over {
+            border-color: #4a90e2;
+            background-color: rgba(74, 144, 226, 0.1);
         }
         
         .preview-container.has-image {
@@ -64,6 +76,7 @@
         .preview-placeholder {
             text-align: center;
             color: #888;
+            pointer-events: none;
         }
         
         .preview-placeholder svg {
@@ -76,6 +89,7 @@
             max-width: 100%;
             max-height: 100%;
             object-fit: contain;
+            pointer-events: none;
         }
         
         .clear-button {
@@ -104,6 +118,12 @@
         
         .error-message {
             color: #ff4d4f;
+            font-size: 0.875rem;
+            margin-bottom: 15px;
+        }
+        
+        .status-message {
+            color: #4a90e2;
             font-size: 0.875rem;
             margin-bottom: 15px;
         }
@@ -154,6 +174,14 @@
         .hidden {
             display: none;
         }
+        
+        /* Estilos para el video de la cámara */
+        #cameraPreview {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            pointer-events: none;
+        }
     </style>
 </head>
 <body>
@@ -170,9 +198,10 @@
                         <circle cx="8.5" cy="8.5" r="1.5"></circle>
                         <polyline points="21 15 16 10 5 21"></polyline>
                     </svg>
-                    <p>Selecciona una imagen o toma una foto</p>
+                    <p>Haz clic o arrastra una imagen aquí</p>
                 </div>
                 <img id="previewImage" class="preview-image hidden" alt="Vista previa">
+                <video id="cameraPreview" class="hidden" autoplay playsinline></video>
                 <button id="clearButton" class="clear-button hidden">✕</button>
             </div>
             
@@ -182,9 +211,14 @@
             <!-- Mensaje de error -->
             <p id="errorMessage" class="error-message hidden"></p>
             
-            <!-- Inputs ocultos -->
+            <!-- Mensaje de estado -->
+            <p id="statusMessage" class="status-message hidden"></p>
+            
+            <!-- Input oculto para galería -->
             <input type="file" id="fileInput" class="hidden" accept=".jpg,.jpeg,.png,.gif,.bmp,.tiff,.tif,.webp,.heif,.heic,.raw,.cr2,.nef,.arw,.orf,.dng,.svg,.ai,.eps,.pdf,.ico,.psd,.xcf,.exr,.tga,.targa">
-            <input type="file" id="cameraInput" class="hidden" accept="image/*" capture="environment">
+            
+            <!-- Canvas oculto para capturar la imagen -->
+            <canvas id="canvas" class="hidden"></canvas>
         </div>
         <div class="footer">
             <button class="btn btn-outline" id="galleryButton">
@@ -208,16 +242,21 @@
     <script>
         // Elementos del DOM
         const fileInput = document.getElementById('fileInput');
-        const cameraInput = document.getElementById('cameraInput');
         const galleryButton = document.getElementById('galleryButton');
         const cameraButton = document.getElementById('cameraButton');
         const previewContainer = document.getElementById('previewContainer');
         const previewPlaceholder = document.getElementById('previewPlaceholder');
         const previewImage = document.getElementById('previewImage');
+        const cameraPreview = document.getElementById('cameraPreview');
         const clearButton = document.getElementById('clearButton');
         const fileName = document.getElementById('fileName');
         const errorMessage = document.getElementById('errorMessage');
-
+        const statusMessage = document.getElementById('statusMessage');
+        const canvas = document.getElementById('canvas');
+        
+        // Variables para la cámara
+        let stream = null;
+        
         // Formatos de imagen soportados
         const supportedFormats = [
             "image/jpeg", "image/jpg", "image/png", "image/gif", "image/bmp", 
@@ -240,7 +279,7 @@
 
         // Función para manejar el cambio de archivo
         function handleFileChange(e) {
-            const file = e.target.files[0];
+            const file = e.target.files[0] || (e.dataTransfer && e.dataTransfer.files[0]);
             
             if (!file) return;
             
@@ -256,14 +295,25 @@
             
             // Limpiar error si existe
             errorMessage.classList.add('hidden');
+            statusMessage.classList.add('hidden');
             
             // Crear URL para la vista previa
             const imageUrl = URL.createObjectURL(file);
             
             // Mostrar la imagen
+            showImage(imageUrl);
+        }
+
+        // Función para mostrar la imagen en la vista previa
+        function showImage(imageUrl) {
+            // Ocultar la cámara si está activa
+            stopCamera();
+            
+            // Mostrar la imagen
             previewImage.src = imageUrl;
             previewImage.classList.remove('hidden');
             previewPlaceholder.classList.add('hidden');
+            cameraPreview.classList.add('hidden');
             previewContainer.classList.add('has-image');
             clearButton.classList.remove('hidden');
         }
@@ -272,20 +322,36 @@
         function showError(message) {
             errorMessage.textContent = message;
             errorMessage.classList.remove('hidden');
+            statusMessage.classList.add('hidden');
+        }
+
+        // Función para mostrar mensaje de estado
+        function showStatus(message) {
+            statusMessage.textContent = message;
+            statusMessage.classList.remove('hidden');
+            errorMessage.classList.add('hidden');
         }
 
         // Función para limpiar la imagen
-        function clearImage() {
+        function clearImage(e) {
+            if (e) {
+                e.stopPropagation(); // Evitar que el clic se propague al contenedor
+            }
+            
             previewImage.classList.add('hidden');
             previewPlaceholder.classList.remove('hidden');
+            cameraPreview.classList.add('hidden');
             previewContainer.classList.remove('has-image');
             clearButton.classList.add('hidden');
             fileName.classList.add('hidden');
             errorMessage.classList.add('hidden');
+            statusMessage.classList.add('hidden');
             
-            // Limpiar los inputs
+            // Limpiar el input
             fileInput.value = '';
-            cameraInput.value = '';
+            
+            // Detener la cámara si está activa
+            stopCamera();
             
             // Revocar URL de objeto para liberar memoria
             if (previewImage.src) {
@@ -294,19 +360,149 @@
             }
         }
 
+        // Función para iniciar la cámara
+        async function startCamera() {
+            try {
+                // Mostrar mensaje de estado
+                showStatus("Solicitando acceso a la cámara...");
+                
+                // Solicitar acceso a la cámara
+                stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { facingMode: "environment" }, 
+                    audio: false 
+                });
+                
+                // Conectar el stream al elemento de video
+                cameraPreview.srcObject = stream;
+                
+                // Mostrar la interfaz de la cámara
+                previewPlaceholder.classList.add('hidden');
+                previewImage.classList.add('hidden');
+                cameraPreview.classList.remove('hidden');
+                clearButton.classList.add('hidden');
+                fileName.classList.add('hidden');
+                statusMessage.classList.add('hidden');
+                
+                // Esperar a que el video se cargue
+                await new Promise(resolve => {
+                    cameraPreview.onloadedmetadata = () => {
+                        resolve();
+                    };
+                });
+                
+                // Iniciar reproducción (necesario en algunos navegadores)
+                await cameraPreview.play();
+                
+                // Configurar el contenedor para capturar la imagen al hacer clic
+                previewContainer.onclick = captureImage;
+                
+            } catch (error) {
+                console.error("Error al acceder a la cámara:", error);
+                
+                if (error.name === 'NotAllowedError') {
+                    showError("Acceso a la cámara denegado. Por favor, permite el acceso a la cámara en la configuración de tu navegador.");
+                } else if (error.name === 'NotFoundError') {
+                    showError("No se encontró ninguna cámara en tu dispositivo.");
+                } else {
+                    showError("Error al acceder a la cámara: " + error.message);
+                }
+                
+                // Restaurar el comportamiento normal del contenedor
+                previewContainer.onclick = openFileDialog;
+            }
+        }
+
+        // Función para detener la cámara
+        function stopCamera() {
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+                stream = null;
+                cameraPreview.srcObject = null;
+                
+                // Restaurar el comportamiento normal del contenedor
+                previewContainer.onclick = openFileDialog;
+            }
+        }
+
+        // Función para capturar una imagen de la cámara
+        function captureImage() {
+            if (!stream) return;
+            
+            // Configurar el canvas con las dimensiones del video
+            canvas.width = cameraPreview.videoWidth;
+            canvas.height = cameraPreview.videoHeight;
+            
+            // Dibujar el frame actual del video en el canvas
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(cameraPreview, 0, 0, canvas.width, canvas.height);
+            
+            // Convertir el canvas a una imagen
+            const imageUrl = canvas.toDataURL('image/jpeg');
+            
+            // Mostrar la imagen capturada
+            showImage(imageUrl);
+            
+            // Detener la cámara
+            stopCamera();
+            
+            // Mostrar nombre del archivo
+            fileName.textContent = "Archivo: foto_capturada.jpg";
+            fileName.classList.remove('hidden');
+            
+            // Restaurar el comportamiento normal del contenedor
+            previewContainer.onclick = openFileDialog;
+        }
+        
+        // Función para abrir el diálogo de selección de archivos
+        function openFileDialog() {
+            // No abrir el diálogo si ya hay una imagen o la cámara está activa
+            if (stream || !previewImage.classList.contains('hidden')) {
+                return;
+            }
+            
+            fileInput.click();
+        }
+        
+        // Funciones para el manejo de arrastrar y soltar
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            previewContainer.classList.add('drag-over');
+        }
+        
+        function handleDragLeave(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            previewContainer.classList.remove('drag-over');
+        }
+        
+        function handleDrop(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            previewContainer.classList.remove('drag-over');
+            
+            // Procesar el archivo soltado
+            handleFileChange(e);
+        }
+
         // Event Listeners
         fileInput.addEventListener('change', handleFileChange);
-        cameraInput.addEventListener('change', handleFileChange);
         
         galleryButton.addEventListener('click', () => {
             fileInput.click();
         });
         
         cameraButton.addEventListener('click', () => {
-            cameraInput.click();
+            startCamera();
         });
         
         clearButton.addEventListener('click', clearImage);
+        
+        // Event listeners para el contenedor de vista previa
+        previewContainer.addEventListener('click', openFileDialog);
+        previewContainer.addEventListener('dragover', handleDragOver);
+        previewContainer.addEventListener('dragleave', handleDragLeave);
+        previewContainer.addEventListener('drop', handleDrop);
     </script>
 </body>
 </html>
