@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cargador de Imágenes</title>
+    <title>Gestor de Prendas</title>
     <style>
         * {
             box-sizing: border-box;
@@ -23,7 +23,7 @@
         
         .container {
             width: 100%;
-            max-width: 500px;
+            max-width: 600px;
             background-color: white;
             border-radius: 8px;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
@@ -182,12 +182,88 @@
             object-fit: cover;
             pointer-events: none;
         }
+        
+        /* Estilos para el formulario */
+        .form-container {
+            margin-top: 20px;
+            border-top: 1px solid #eee;
+            padding-top: 20px;
+        }
+        
+        .form-title {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            color: #333;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 0.875rem;
+            color: #555;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 0.875rem;
+        }
+        
+        .form-control:focus {
+            border-color: #4a90e2;
+            outline: none;
+        }
+        
+        .form-row {
+            display: flex;
+            gap: 15px;
+        }
+        
+        .form-row .form-group {
+            flex: 1;
+        }
+        
+        .btn-save {
+            background-color: #52c41a;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.875rem;
+            width: 100%;
+        }
+        
+        .btn-save:hover {
+            background-color: #49ad17;
+        }
+        
+        .btn-save:disabled {
+            background-color: #d9d9d9;
+            cursor: not-allowed;
+        }
+        
+        .success-message {
+            background-color: #f6ffed;
+            border: 1px solid #b7eb8f;
+            color: #52c41a;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 15px;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>Añadir Imagen</h1>
+            <h1>Añadir Nueva Prenda</h1>
         </div>
         <div class="content">
             <!-- Contenedor de vista previa -->
@@ -213,6 +289,59 @@
             
             <!-- Mensaje de estado -->
             <p id="statusMessage" class="status-message hidden"></p>
+            
+            <!-- Formulario de prenda (inicialmente oculto) -->
+            <div id="formContainer" class="form-container hidden">
+                <h2 class="form-title">Información de la Prenda</h2>
+                
+                <div class="form-group">
+                    <label for="idPrenda">ID Prenda</label>
+                    <input type="text" id="idPrenda" class="form-control" readonly>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="tipo">Tipo</label>
+                        <select id="tipo" class="form-control" required>
+                            <option value="">Seleccionar...</option>
+                            <option value="sudaderas">Sudaderas</option>
+                            <option value="jerseis">Jerseis</option>
+                            <option value="tops">Tops</option>
+                            <option value="pantalones">Pantalones</option>
+                            <option value="chandal">Chándal</option>
+                            <option value="zapatillas">Zapatillas</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="marca">Marca</label>
+                        <input type="text" id="marca" class="form-control" required placeholder="Ej: Nike, Adidas...">
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="talla">Talla</label>
+                        <input type="text" id="talla" class="form-control" required placeholder="Ej: S, M, L, 42...">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="color">Color</label>
+                        <input type="text" id="color" class="form-control" required placeholder="Ej: Rojo, Azul...">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="estilo">Estilo</label>
+                    <input type="text" id="estilo" class="form-control" required placeholder="Ej: Casual, Deportivo...">
+                </div>
+                
+                <button id="saveButton" class="btn-save">Guardar Nueva Prenda</button>
+                
+                <div id="successMessage" class="success-message hidden">
+                    Prenda guardada correctamente
+                </div>
+            </div>
             
             <!-- Input oculto para galería -->
             <input type="file" id="fileInput" class="hidden" accept=".jpg,.jpeg,.png,.gif,.bmp,.tiff,.tif,.webp,.heif,.heic,.raw,.cr2,.nef,.arw,.orf,.dng,.svg,.ai,.eps,.pdf,.ico,.psd,.xcf,.exr,.tga,.targa">
@@ -254,8 +383,22 @@
         const statusMessage = document.getElementById('statusMessage');
         const canvas = document.getElementById('canvas');
         
+        // Elementos del formulario
+        const formContainer = document.getElementById('formContainer');
+        const idPrendaInput = document.getElementById('idPrenda');
+        const tipoSelect = document.getElementById('tipo');
+        const marcaInput = document.getElementById('marca');
+        const tallaInput = document.getElementById('talla');
+        const estiloInput = document.getElementById('estilo');
+        const colorInput = document.getElementById('color');
+        const saveButton = document.getElementById('saveButton');
+        const successMessage = document.getElementById('successMessage');
+        
         // Variables para la cámara
         let stream = null;
+        
+        // Variable para almacenar la imagen actual
+        let currentImageUrl = null;
         
         // Formatos de imagen soportados
         const supportedFormats = [
@@ -275,6 +418,14 @@
             
             const lowerFilename = filename.toLowerCase();
             return supportedExtensions.some(ext => lowerFilename.endsWith(ext));
+        }
+
+        // Función para generar un ID único para la prenda
+        function generatePrendaId() {
+            const prefix = 'PRD';
+            const timestamp = new Date().getTime().toString().slice(-6);
+            const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+            return `${prefix}${timestamp}${random}`;
         }
 
         // Función para manejar el cambio de archivo
@@ -299,9 +450,13 @@
             
             // Crear URL para la vista previa
             const imageUrl = URL.createObjectURL(file);
+            currentImageUrl = imageUrl;
             
             // Mostrar la imagen
             showImage(imageUrl);
+            
+            // Mostrar el formulario y generar ID
+            showForm();
         }
 
         // Función para mostrar la imagen en la vista previa
@@ -316,6 +471,18 @@
             cameraPreview.classList.add('hidden');
             previewContainer.classList.add('has-image');
             clearButton.classList.remove('hidden');
+        }
+
+        // Función para mostrar el formulario
+        function showForm() {
+            // Generar un ID único para la prenda
+            idPrendaInput.value = generatePrendaId();
+            
+            // Mostrar el formulario
+            formContainer.classList.remove('hidden');
+            
+            // Ocultar mensaje de éxito si estaba visible
+            successMessage.classList.add('hidden');
         }
 
         // Función para mostrar error
@@ -346,6 +513,7 @@
             fileName.classList.add('hidden');
             errorMessage.classList.add('hidden');
             statusMessage.classList.add('hidden');
+            formContainer.classList.add('hidden');
             
             // Limpiar el input
             fileInput.value = '';
@@ -357,6 +525,7 @@
             if (previewImage.src) {
                 URL.revokeObjectURL(previewImage.src);
                 previewImage.src = '';
+                currentImageUrl = null;
             }
         }
 
@@ -382,6 +551,7 @@
                 clearButton.classList.add('hidden');
                 fileName.classList.add('hidden');
                 statusMessage.classList.add('hidden');
+                formContainer.classList.add('hidden');
                 
                 // Esperar a que el video se cargue
                 await new Promise(resolve => {
@@ -438,6 +608,7 @@
             
             // Convertir el canvas a una imagen
             const imageUrl = canvas.toDataURL('image/jpeg');
+            currentImageUrl = imageUrl;
             
             // Mostrar la imagen capturada
             showImage(imageUrl);
@@ -451,6 +622,9 @@
             
             // Restaurar el comportamiento normal del contenedor
             previewContainer.onclick = openFileDialog;
+            
+            // Mostrar el formulario
+            showForm();
         }
         
         // Función para abrir el diálogo de selección de archivos
@@ -484,6 +658,69 @@
             // Procesar el archivo soltado
             handleFileChange(e);
         }
+        
+        // Función para guardar la prenda en la base de datos
+        function savePrenda() {
+            // Validar que todos los campos estén completos
+            if (!validateForm()) {
+                showError("Por favor, completa todos los campos del formulario");
+                return;
+            }
+            
+            // Obtener los valores del formulario
+            const prenda = {
+                id: idPrendaInput.value,
+                tipo: tipoSelect.value,
+                marca: marcaInput.value,
+                talla: tallaInput.value,
+                estilo: estiloInput.value,
+                color: colorInput.value,
+                imagen: currentImageUrl,
+                fechaCreacion: new Date().toISOString()
+            };
+            
+            try {
+                // Obtener prendas existentes del localStorage
+                let prendas = JSON.parse(localStorage.getItem('prendas')) || [];
+                
+                // Añadir la nueva prenda
+                prendas.push(prenda);
+                
+                // Guardar en localStorage
+                localStorage.setItem('prendas', JSON.stringify(prendas));
+                
+                // Mostrar mensaje de éxito
+                successMessage.classList.remove('hidden');
+                
+                // Desactivar el botón de guardar temporalmente
+                saveButton.disabled = true;
+                
+                // Reactivar el botón después de 3 segundos
+                setTimeout(() => {
+                    saveButton.disabled = false;
+                    
+                    // Generar un nuevo ID para permitir añadir otra prenda con la misma imagen
+                    idPrendaInput.value = generatePrendaId();
+                }, 3000);
+                
+                console.log("Prenda guardada:", prenda);
+                
+            } catch (error) {
+                console.error("Error al guardar la prenda:", error);
+                showError("Error al guardar la prenda: " + error.message);
+            }
+        }
+        
+        // Función para validar el formulario
+        function validateForm() {
+            return (
+                tipoSelect.value !== "" &&
+                marcaInput.value.trim() !== "" &&
+                tallaInput.value.trim() !== "" &&
+                estiloInput.value.trim() !== "" &&
+                colorInput.value.trim() !== ""
+            );
+        }
 
         // Event Listeners
         fileInput.addEventListener('change', handleFileChange);
@@ -498,11 +735,24 @@
         
         clearButton.addEventListener('click', clearImage);
         
+        saveButton.addEventListener('click', savePrenda);
+        
         // Event listeners para el contenedor de vista previa
         previewContainer.addEventListener('click', openFileDialog);
         previewContainer.addEventListener('dragover', handleDragOver);
         previewContainer.addEventListener('dragleave', handleDragLeave);
         previewContainer.addEventListener('drop', handleDrop);
+        
+        // Event listeners para validación en tiempo real
+        const formInputs = [tipoSelect, marcaInput, tallaInput, estiloInput, colorInput];
+        formInputs.forEach(input => {
+            input.addEventListener('input', () => {
+                // Si todos los campos están completos, quitar mensaje de error
+                if (validateForm()) {
+                    errorMessage.classList.add('hidden');
+                }
+            });
+        });
     </script>
 </body>
 </html>
