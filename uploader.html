@@ -255,8 +255,31 @@
             color: #52c41a;
             padding: 10px;
             border-radius: 4px;
-            margin-top: 15px;
+            margin: 15px 0;
             text-align: center;
+        }
+        
+        /* Mensaje de éxito flotante */
+        .floating-success {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #f6ffed;
+            border: 1px solid #b7eb8f;
+            color: #52c41a;
+            padding: 12px 20px;
+            border-radius: 4px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+            z-index: 1000;
+            animation: fadeInOut 3s forwards;
+        }
+        
+        @keyframes fadeInOut {
+            0% { opacity: 0; }
+            10% { opacity: 1; }
+            80% { opacity: 1; }
+            100% { opacity: 0; }
         }
     </style>
 </head>
@@ -337,10 +360,6 @@
                 </div>
                 
                 <button id="saveButton" class="btn-save">Guardar Nueva Prenda</button>
-                
-                <div id="successMessage" class="success-message hidden">
-                    Prenda guardada correctamente
-                </div>
             </div>
             
             <!-- Input oculto para galería -->
@@ -392,7 +411,6 @@
         const estiloInput = document.getElementById('estilo');
         const colorInput = document.getElementById('color');
         const saveButton = document.getElementById('saveButton');
-        const successMessage = document.getElementById('successMessage');
         
         // Variables para la cámara
         let stream = null;
@@ -481,8 +499,18 @@
             // Mostrar el formulario
             formContainer.classList.remove('hidden');
             
-            // Ocultar mensaje de éxito si estaba visible
-            successMessage.classList.add('hidden');
+            // Resetear los campos del formulario (excepto el ID)
+            resetFormFields();
+        }
+        
+        // Función para resetear los campos del formulario
+        function resetFormFields() {
+            tipoSelect.value = "";
+            marcaInput.value = "";
+            tallaInput.value = "";
+            estiloInput.value = "";
+            colorInput.value = "";
+            errorMessage.classList.add('hidden');
         }
 
         // Función para mostrar error
@@ -498,13 +526,34 @@
             statusMessage.classList.remove('hidden');
             errorMessage.classList.add('hidden');
         }
+        
+        // Función para mostrar mensaje de éxito flotante
+        function showFloatingSuccess(message) {
+            // Crear elemento para el mensaje
+            const successElement = document.createElement('div');
+            successElement.className = 'floating-success';
+            successElement.textContent = message;
+            
+            // Añadir al body
+            document.body.appendChild(successElement);
+            
+            // Eliminar después de la animación
+            setTimeout(() => {
+                successElement.remove();
+            }, 3000);
+        }
 
-        // Función para limpiar la imagen
+        // Función para limpiar la imagen y resetear el formulario
         function clearImage(e) {
             if (e) {
                 e.stopPropagation(); // Evitar que el clic se propague al contenedor
             }
             
+            resetToInitialState();
+        }
+        
+        // Función para resetear todo al estado inicial
+        function resetToInitialState() {
             previewImage.classList.add('hidden');
             previewPlaceholder.classList.remove('hidden');
             cameraPreview.classList.add('hidden');
@@ -527,6 +576,9 @@
                 previewImage.src = '';
                 currentImageUrl = null;
             }
+            
+            // Resetear los campos del formulario
+            resetFormFields();
         }
 
         // Función para iniciar la cámara
@@ -689,19 +741,11 @@
                 // Guardar en localStorage
                 localStorage.setItem('prendas', JSON.stringify(prendas));
                 
-                // Mostrar mensaje de éxito
-                successMessage.classList.remove('hidden');
+                // Mostrar mensaje de éxito flotante
+                showFloatingSuccess("Prenda guardada correctamente");
                 
-                // Desactivar el botón de guardar temporalmente
-                saveButton.disabled = true;
-                
-                // Reactivar el botón después de 3 segundos
-                setTimeout(() => {
-                    saveButton.disabled = false;
-                    
-                    // Generar un nuevo ID para permitir añadir otra prenda con la misma imagen
-                    idPrendaInput.value = generatePrendaId();
-                }, 3000);
+                // Resetear todo al estado inicial
+                resetToInitialState();
                 
                 console.log("Prenda guardada:", prenda);
                 
