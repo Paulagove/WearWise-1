@@ -319,4 +319,49 @@
     80% { opacity: 1; }
     100% { opacity: 0; }
     }
+    
+    /* Media queries para pantallas pequeñas (móviles) */
+    @media screen and (max-width: 768px) {
+        .preview-container {
+            height: 570px; /* Más alto en móviles para simular la relación de aspecto de la cámara */
+        }
+        
+        /* Ajustar la posición del botón de captura para la nueva altura */
+        .capture-button {
+            bottom: 30px;
+        }
+        
+        /* Ajustar el formulario para pantallas pequeñas */
+        .form-row {
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .header h1 {
+            font-size: 1.3rem;
+        }
+        
+        .btn {
+            padding: 12px 10px;
+        }
+    }
+    
+    /* Para pantallas muy pequeñas */
+    @media screen and (max-width: 480px) {
+        .preview-container {
+            height: 490px; /* Aún más alto para móviles pequeños */
+        }
+        
+        .content {
+            padding: 15px;
+        }
+        
+        .header {
+            padding: 15px;
+        }
+        
+        .footer {
+            padding: 15px;
+        }
+    }
     /**Final estilos uploader de imagenes**/
