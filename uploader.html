@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestor de Prendas</title>
-    <link rel="stylesheet" href="estilos/estilos.css">
+    <link rel="stylesheet" href="estilos/styles.css">
 </head>
 <body>
     <div class="container">
@@ -171,9 +171,16 @@
 
         // Función para manejar el cambio de archivo
         function handleFileChange(e) {
-            const file = e.target.files[0] || (e.dataTransfer && e.dataTransfer.files[0]);
+            let file;
             
-            if (!file) return;
+            // Verificar si es un evento de input file o un evento de drop
+            if (e.dataTransfer && e.dataTransfer.files.length > 0) {
+                file = e.dataTransfer.files[0];
+            } else if (e.target && e.target.files && e.target.files.length > 0) {
+                file = e.target.files[0];
+            } else {
+                return; // No hay archivo para procesar
+            }
             
             // Verificar si el formato es soportado
             if (!supportedFormats.includes(file.type) && !checkFileExtension(file.name)) {
