@@ -25,6 +25,10 @@
                 <img id="previewImage" class="preview-image hidden" alt="Vista previa">
                 <video id="cameraPreview" class="hidden" autoplay playsinline></video>
                 <button id="clearButton" class="clear-button hidden">✕</button>
+                <!-- Botón de captura para la cámara -->
+                <button id="captureButton" class="capture-button hidden">
+                    <div class="capture-button-inner"></div>
+                </button>
             </div>
             
             <!-- Nombre del archivo -->
@@ -120,6 +124,7 @@
         const previewImage = document.getElementById('previewImage');
         const cameraPreview = document.getElementById('cameraPreview');
         const clearButton = document.getElementById('clearButton');
+        const captureButton = document.getElementById('captureButton');
         const fileName = document.getElementById('fileName');
         const errorMessage = document.getElementById('errorMessage');
         const statusMessage = document.getElementById('statusMessage');
@@ -217,6 +222,7 @@
             previewImage.classList.remove('hidden');
             previewPlaceholder.classList.add('hidden');
             cameraPreview.classList.add('hidden');
+            captureButton.classList.add('hidden');
             previewContainer.classList.add('has-image');
             clearButton.classList.remove('hidden');
         }
@@ -248,6 +254,7 @@
             errorMessage.textContent = message;
             errorMessage.classList.remove('hidden');
             statusMessage.classList.add('hidden');
+            console.error("Error:", message);
         }
 
         // Función para mostrar mensaje de estado
@@ -255,6 +262,7 @@
             statusMessage.textContent = message;
             statusMessage.classList.remove('hidden');
             errorMessage.classList.add('hidden');
+            console.log("Estado:", message);
         }
         
         // Función para mostrar mensaje de éxito flotante
@@ -287,6 +295,7 @@
             previewImage.classList.add('hidden');
             previewPlaceholder.classList.remove('hidden');
             cameraPreview.classList.add('hidden');
+            captureButton.classList.add('hidden');
             previewContainer.classList.remove('has-image');
             clearButton.classList.add('hidden');
             fileName.classList.add('hidden');
@@ -330,7 +339,8 @@
                 previewPlaceholder.classList.add('hidden');
                 previewImage.classList.add('hidden');
                 cameraPreview.classList.remove('hidden');
-                clearButton.classList.add('hidden');
+                captureButton.classList.remove('hidden'); // Mostrar el botón de captura
+                clearButton.classList.remove('hidden'); // Mostrar el botón para cancelar
                 fileName.classList.add('hidden');
                 statusMessage.classList.add('hidden');
                 formContainer.classList.add('hidden');
@@ -345,8 +355,9 @@
                 // Iniciar reproducción (necesario en algunos navegadores)
                 await cameraPreview.play();
                 
-                // Configurar el contenedor para capturar la imagen al hacer clic
-                previewContainer.onclick = captureImage;
+                // Ya no configuramos el contenedor para capturar la imagen al hacer clic
+                // Ahora usamos el botón de captura
+                previewContainer.onclick = null;
                 
             } catch (error) {
                 console.error("Error al acceder a la cámara:", error);
@@ -380,33 +391,39 @@
         function captureImage() {
             if (!stream) return;
             
-            // Configurar el canvas con las dimensiones del video
-            canvas.width = cameraPreview.videoWidth;
-            canvas.height = cameraPreview.videoHeight;
-            
-            // Dibujar el frame actual del video en el canvas
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(cameraPreview, 0, 0, canvas.width, canvas.height);
-            
-            // Convertir el canvas a una imagen
-            const imageUrl = canvas.toDataURL('image/jpeg');
-            currentImageUrl = imageUrl;
-            
-            // Mostrar la imagen capturada
-            showImage(imageUrl);
-            
-            // Detener la cámara
-            stopCamera();
-            
-            // Mostrar nombre del archivo
-            fileName.textContent = "Archivo: foto_capturada.jpg";
-            fileName.classList.remove('hidden');
-            
-            // Restaurar el comportamiento normal del contenedor
-            previewContainer.onclick = openFileDialog;
-            
-            // Mostrar el formulario
-            showForm();
+            try {
+                // Configurar el canvas con las dimensiones del video
+                canvas.width = cameraPreview.videoWidth;
+                canvas.height = cameraPreview.videoHeight;
+                
+                // Dibujar el frame actual del video en el canvas
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(cameraPreview, 0, 0, canvas.width, canvas.height);
+                
+                // Convertir el canvas a una imagen
+                const imageUrl = canvas.toDataURL('image/jpeg');
+                currentImageUrl = imageUrl;
+                
+                // Mostrar la imagen capturada
+                showImage(imageUrl);
+                
+                // Detener la cámara
+                stopCamera();
+                
+                // Mostrar nombre del archivo
+                fileName.textContent = "Archivo: foto_capturada.jpg";
+                fileName.classList.remove('hidden');
+                
+                // Restaurar el comportamiento normal del contenedor
+                previewContainer.onclick = openFileDialog;
+                
+                // Mostrar el formulario
+                showForm();
+            } catch (error) {
+                console.error("Error al capturar la imagen:", error);
+                showError("Error al capturar la imagen: " + error.message);
+                stopCamera();
+            }
         }
         
         // Función para abrir el diálogo de selección de archivos
@@ -508,6 +525,12 @@
         });
         
         clearButton.addEventListener('click', clearImage);
+        
+        // Añadir event listener para el botón de captura
+        captureButton.addEventListener('click', (e) => {
+            e.stopPropagation(); // Evitar que el clic se propague al contenedor
+            captureImage();
+        });
         
         saveButton.addEventListener('click', savePrenda);
         
