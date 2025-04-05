@@ -1,6 +1,6 @@
 /* Estilos básicos para el navbar */
 body {
-    font-family: Arial, Helvetica, sans-serif, sans-serif;
+    font-family: Helvetica, sans-serif, sans-serif;
     margin: 0;
     padding: 0;
 }
@@ -43,22 +43,12 @@ nav {
 }
 
 /**Principio estilos uploader de imagenes**/
-* {
+.uploader{
     box-sizing: border-box;
     margin: 0;
     padding: 0;
-    font-family: Arial, sans-serif;
     }
-    
-    body {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
-    background-color: #f5f5f5;
-    padding: 20px;
-    }
-    
+
     .container {
     width: 100%;
     max-width: 600px;
