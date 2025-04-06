@@ -8,7 +8,6 @@
     <link rel="stylesheet" href="estilos/styles.css">
 </head>
 <body>
-
     <nav>
         <!-- Logo -->
         <div class="logo">
@@ -23,6 +22,37 @@
             <li><a href="outfit.html">Crear outfit</a></li>
         </ul>
     </nav>
+
+    <div class="mi-inventario">
+        <h2>Mi Inventario</h2>
+
+        <!-- Menú de filtro -->
+        <div class="filter-menu">
+            <button data-filter="all">Todos</button>
+            <button data-filter="zapatos">Zapatos</button>
+            <button data-filter="partes-arriba">Partes de Arriba</button>
+            <button data-filter="partes-abajo">Partes de Abajo</button>
+            <button data-filter="accesorios">Accesorios</button>
+        </div>
+
+        <!-- Lista de inventario -->
+        <div class="inventory-list" id="inventory-list">
+            <!-- Los artículos se cargarán aquí desde JavaScript -->
+        </div>
+
+        <!-- Modal de detalles del artículo -->
+        <div class="item-details-modal" id="item-details-modal">
+            <div class="modal-content">
+                <img src="" alt="Imagen del artículo" id="modal-image">
+                <h3 id="modal-title"></h3>
+                <p id="modal-description"></p>
+                <button class="close-modal" onclick="closeModal()">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+
+    <script src="javascript/script.js"></script>
 
 </body>
 </html>
