@@ -27,20 +27,20 @@
                         <form id="inicioSesionForm">
                             <div class="input-group">
                                 <img src="https://api.iconify.design/mdi:email-outline.svg" alt="Email" class="input-icon">
-                                <input type="email" id="email" placeholder="Correo electrónico" required>
+                                <input type="email" id="email" placeholder="Correo electrónico">
                             </div>
 
                             <div class="input-group">
                                 <img src="https://api.iconify.design/mdi:lock-outline.svg" alt="Contraseña" class="input-icon">
-                                <input type="password" id="contrasena" placeholder="Contraseña" required>
+                                <input type="password" id="contrasena" placeholder="Contraseña" >
                             </div>
 
                             <div class="remember-forgot">
                                 <label class="remember">
-                                    <input type="checkbox" id="recuerdame">
+                                    <input type="checkbox" id="remember">
                                     <span>Recuérdame</span>
                                 </label>
-                                <a href="#" class="forgot-link" data-form="forgotForm">¿Has olvidado la contraseña?</a>
+                                <a href="#" class="forgot-link" data-form="restaurarPsswdForm">¿Has olvidado la contraseña?</a>
                             </div>
 
                             <button type="submit" class="iniciosesion-btn">Iniciar sesión</button>
@@ -54,39 +54,39 @@
                     <div id="registroForm" class="form">
                         <h1>Crear una cuenta</h1>
                         <p class="subtitle">Regístrate para poder usar WearWise</p>
-                        <form id="registroForm">
+                        <form id="registroFormElm">
                             <div class="input-group">
                                 <img src="https://api.iconify.design/mdi:account-outline.svg" alt="Nombre y apellidos" class="input-icon">
-                                <input type="text" id="nombre" placeholder="Nombre" required>
+                                <input type="text" id="nombre" placeholder="Nombre">
                             </div>
                             <div class="input-group">
                                 <img src="https://api.iconify.design/mdi:account-supervisor-circle-outline.svg" alt="Nombre de usuario"
                                     class="input-icon">
-                                <input type="text" id="nomUsuario" placeholder="Nombre de usuario" required>
+                                <input type="text" id="nomUsuario" placeholder="Nombre de usuario">
                             </div>
                             <div class="input-group">
                                 <img src="https://api.iconify.design/mdi:email-outline.svg" alt="Email"
                                     class="input-icon">
-                                <input type="email" id="emailRegistro" placeholder="Correo electrónico" required>
+                                <input type="email" id="emailRegistro" placeholder="Correo electrónico">
                             </div>
 
                             <div class="input-group">
                                 <img src="https://api.iconify.design/mdi:lock-outline.svg" alt="Contraseña"
                                     class="input-icon">
-                                <input type="password" id="contrasenaRegistro" placeholder="Contraseña" required>
+                                <input type="password" id="contrasenaRegistro" placeholder="Contraseña">
                             </div>
 
                             <div class="input-group">
                                 <img src="https://api.iconify.design/mdi:lock-check-outline.svg"
                                     alt="Confirme su contraseña" class="input-icon">
-                                <input type="password" id="confirmarPsswd" placeholder="Confirme la contraseña"
-                                    required>
+                                <input type="password" id="confirmarPsswd" placeholder="Confirme la contraseña">
                             </div>
 
                             <button type="submit" class="registro-btn">Crear una cuenta</button>
 
                             <p class="login-link">
-                                ¿Ya tienes una cuenta? <a href="#" class="switch-form" data-form="inicioSesionForm">Iniciar sesión</a>
+                                ¿Ya tienes una cuenta? 
+                                <a href="#" class="switch-form" data-form="loginForm">Iniciar sesión</a>
                             </p>
                         </form>
                     </div>
@@ -98,12 +98,12 @@
                             <div class="input-group">
                                 <img src="https://api.iconify.design/mdi:email-outline.svg" alt="Correo electrónico"
                                     class="input-icon">
-                                <input type="email" id="restaurarCorreo" placeholder="Correo electrónico" required>
+                                <input type="email" id="restaurarCorreo" placeholder="Correo electrónico">
                             </div>
 
                             <button type="submit" class="restaurarPsswd-btn">Enviar enlace de recuperación</button>
                             <p class="login-link">
-                                ¿Recuerdas la contraseña?<a href="#" class="switch-form" data-form="inicioSesionForm">Iniciar Sesión</a>
+                                ¿Recuerdas la contraseña? <a href="#" class="switch-form" data-form="loginForm">Iniciar Sesión</a>
                             </p>
                         </form>
                     </div>

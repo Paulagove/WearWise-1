@@ -682,6 +682,7 @@ nav {
     font-size: 0.9rem;
     text-align: center;
     animation: fadeIn 0.3s ease-out;
+    z-index: 999
 }
 
 .overlay .message.error {

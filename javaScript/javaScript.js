@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
     let inicioSesionForm = document.getElementById('inicioSesionForm');
-    let registroForm = document.getElementById('registroForm');
+    let registroForm = document.getElementById('registroFormElm');
     let restaurarPasswdForm = document.getElementById('restaurarPsswdForm');
     let correo = document.getElementById('email');
     let contrasenaInput = document.getElementById('contrasena');
@@ -155,8 +155,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (existingMessage) existingMessage.remove();
 
         let activeForm = document.querySelector('.form.active');
-        let submitBtn = activeForm.querySelector('.iniciosesion-btn');
-        submitBtn.parentElement.insertBefore(messageDiv, submitBtn);
+        let submitBtn = activeForm.querySelector('button[type="submit"]');
+        if (submitBtn) {
+            submitBtn.parentElement.insertBefore(messageDiv, submitBtn);
+        }
 
         setTimeout(() => messageDiv.remove(), 3000);
     }
